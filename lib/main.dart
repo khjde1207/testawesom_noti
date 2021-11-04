@@ -2,8 +2,155 @@ import 'package:awesome_notifications/android_foreground_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  // AwesomeNotifications().actionStream.listen((receivedNotification) {
+  //   print("actionStream ${receivedNotification}");
+  //   if (receivedNotification.buttonKeyPressed == "exit") {
+  //     AwesomeNotifications().cancelSchedule(receivedNotification.id!);
+  //     AwesomeNotifications().cancel(receivedNotification.id!);
+  //   }
+  // });
+  // AwesomeNotifications().displayedStream.listen((receivedNotification) async {
+  //   print("displayedStream ${receivedNotification}");
+  //   var disDate =
+  //       DateTime.parse(receivedNotification.createdDate! + "Z").toLocal();
+  //   var now = DateTime.now();
+  //   print(now.difference(disDate).inSeconds);
+  //   if (now.difference(disDate).inSeconds > 30) {
+  //     AwesomeNotifications().createNotification(
+  //         content: NotificationContent(
+  //           id: 10,
+  //           channelKey: 'test1',
+  //           title: "${DateTime.now().toIso8601String()}",
+  //           body: "${DateTime.now().toIso8601String()}",
+  //           showWhen: true,
+  //           createdLifeCycle: NotificationLifeCycle.Background,
+  //           notificationLayout: NotificationLayout.BigText,
+  //           displayOnBackground: true,
+  //           displayOnForeground: true,
+  //         ),
+  //         actionButtons: [
+  //           NotificationActionButton(
+  //               key: 'exit',
+  //               label: 'exit',
+  //               autoDismissable: false,
+  //               // autoCancel: false,
+  //               buttonType: ActionButtonType.KeepOnTop),
+  //           NotificationActionButton(
+  //               key: 'reload',
+  //               label: 'reload',
+  //               // autoCancel: false,
+  //               buttonType: ActionButtonType.KeepOnTop),
+  //         ]);
+  //   }
+  // });
+  // AwesomeNotifications().dismissedStream.listen((receivedNotification) {
+  //   print("dismissedStream ");
+  // });
+  // AwesomeNotifications().createdStream.listen((receivedNotification) {
+  //   print("createdStream ");
+  // });
+  await AwesomeNotifications().initialize('resource://drawable/ic_launcher', [
+    NotificationChannel(
+      channelKey: 'test1',
+      channelName: 'test1',
+      channelDescription: 'testtest1111',
+      defaultColor: Color(0xFF9D50DD),
+      ledColor: Colors.white,
+      playSound: false,
+      importance: NotificationImportance.Low,
+      enableVibration: false,
+    )
+  ]);
+  AwesomeNotifications().setListeners(
+    onActionReceivedMethod: Test.onActionReceivedMethod,
+    onNotificationCreatedMethod: Test.onNotificationCreatedMethod,
+    onNotificationDisplayedMethod: Test.onNotificationDisplayedMethod,
+    onDismissActionReceivedMethod: Test.onDismissActionReceivedMethod,
+  );
+
   runApp(const MyApp());
+}
+
+class Test {
+  static Future<void> onActionReceivedMethod(ReceivedAction n) async {
+    // print("onActionReceivedMethod ${n}");
+    if (n.actionKey == "exit") {
+      AwesomeNotifications().cancelSchedule(n.id!);
+      AwesomeNotifications().cancel(n.id!);
+    }
+  }
+
+  static Future<void> onNotificationCreatedMethod(
+      ReceivedNotification n) async {
+    // print("onNotificationCreatedMethod ${n}");
+  }
+
+  static Future<void> onNotificationDisplayedMethod(
+      ReceivedNotification receivedNotification) async {
+    // print("onNotificationDisplayedMethod ${receivedNotification}");
+    var disDate =
+        DateTime.parse(receivedNotification.createdDate! + "Z").toLocal();
+    var now = DateTime.now();
+    print(now.difference(disDate).inSeconds);
+    if (now.difference(disDate).inSeconds > 30) {
+      await AwesomeNotifications()
+          .initialize('resource://drawable/ic_launcher', [
+        NotificationChannel(
+          channelKey: 'test1',
+          channelName: 'test1',
+          channelDescription: 'testtest1111',
+          defaultColor: Color(0xFF9D50DD),
+          ledColor: Colors.white,
+          playSound: false,
+          importance: NotificationImportance.Low,
+          enableVibration: false,
+        )
+      ]);
+      AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 10,
+            channelKey: 'test1',
+            title: "${DateTime.now().toIso8601String()}",
+            body: "${DateTime.now().toIso8601String()}",
+            showWhen: true,
+            createdLifeCycle: NotificationLifeCycle.Background,
+            notificationLayout: NotificationLayout.BigText,
+            displayOnBackground: true,
+            displayOnForeground: true,
+          ),
+          schedule: NotificationInterval(
+              interval: 60,
+              repeats: true,
+              allowWhileIdle: true,
+              timeZone:
+                  await AwesomeNotifications().getLocalTimeZoneIdentifier()),
+          actionButtons: [
+            NotificationActionButton(
+              key: 'exit',
+              label: 'exit',
+              autoDismissible: false,
+              // autoDismissable: false,
+              // autoCancel: false,
+              notificationActionType: NotificationActionType.KeepOnTopAction,
+            ),
+            NotificationActionButton(
+                key: 'reload',
+                label: 'reload',
+                autoDismissible: false,
+                notificationActionType: NotificationActionType.KeepOnTopAction
+                // notificationActionType: NotificationActionType.
+                // autoCancel: false,
+                // buttonType: ActionButtonType.KeepOnTop
+                ),
+          ]);
+    }
+  }
+
+  static Future<void> onDismissActionReceivedMethod(
+      ReceivedNotification n) async {
+    // print("onDismissActionReceivedMethod ${n}");
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -53,20 +200,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   void _incrementCounter() async {
-    await AwesomeNotifications()
-        .initialize('resource://drawable/res_app_icon', [
-      NotificationChannel(
-        channelKey: 'test1',
-        channelName: 'test1',
-        channelDescription: 'testtest1111',
-        defaultColor: Color(0xFF9D50DD),
-        ledColor: Colors.white,
-        playSound: false,
-        importance: NotificationImportance.Low,
-        enableVibration: false,
-      )
-    ]);
-    AndroidForegroundService.startForeground(
+    print("_incrementCounter");
+
+    // AndroidForegroundService.s(
+    await AwesomeNotifications().createNotification(
         content: NotificationContent(
           id: 10,
           channelKey: 'test1',
@@ -80,15 +217,61 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         actionButtons: [
           NotificationActionButton(
-              key: 'exit',
-              label: 'exit',
-              autoCancel: false,
-              buttonType: ActionButtonType.KeepOnTop),
+            key: 'exit',
+            label: 'exit',
+            autoDismissible: false,
+            notificationActionType: NotificationActionType.KeepOnTopAction,
+            // autoDismissable: false,
+            // autoCancel: false,
+            // buttonType: ActionButtonType.KeepOnTop
+          ),
           NotificationActionButton(
-              key: 'reload',
-              label: 'reload',
-              autoCancel: false,
-              buttonType: ActionButtonType.KeepOnTop),
+            key: 'reload',
+            label: 'reload',
+            autoDismissible: false,
+            notificationActionType: NotificationActionType.KeepOnTopAction,
+            // autoCancel: false,
+            // buttonType: ActionButtonType.KeepOnTop
+          ),
+        ]);
+    // print(DateTime.parse("2021-11-04 04:20:36Z").toLocal());
+    // return;
+    print(await AwesomeNotifications().getLocalTimeZoneIdentifier());
+    await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 10,
+          channelKey: 'test1',
+          title: "sadadsadsad",
+          body: "teasdsadsadsadsast",
+          showWhen: true,
+          createdLifeCycle: NotificationLifeCycle.Background,
+          notificationLayout: NotificationLayout.BigText,
+          displayOnBackground: true,
+          displayOnForeground: true,
+        ),
+        schedule: NotificationInterval(
+            interval: 60,
+            repeats: true,
+            allowWhileIdle: true,
+            timeZone:
+                await AwesomeNotifications().getLocalTimeZoneIdentifier()),
+        actionButtons: [
+          NotificationActionButton(
+            key: 'exit',
+            label: 'exit',
+            autoDismissible: false,
+            notificationActionType: NotificationActionType.KeepOnTopAction,
+            // autoCancel: false,
+            // buttonType: ActionButtonType.KeepOnTop
+          ),
+          NotificationActionButton(
+            key: 'reload',
+            label: 'reload',
+            autoDismissible: false,
+            notificationActionType: NotificationActionType.KeepOnTopAction,
+            // autoCancel: false,
+            // buttonType: ActionButtonType.KeepOnTop
+          ),
         ]);
     // setState(() {
     //   // This call to setState tells the Flutter framework that something has
